@@ -30,17 +30,32 @@ export async function plsqlToJs(fileName: string) {
 			}
 
             const inline = columnDefinition.inline_constraint_list();
-            if(inline !== null) {
-                if(inline[0].getText() === "NOTNULL") {
-                    col['nullable'] = false;
-                }
-                if(inline[0].getText() === "NULL") {
-                    col['nullable'] = true;
-                }
-            }
+            if(inline !== null && inline.length > 0) {
+                const inline0 = inline[0];
 
+                if(datatype !== null) {
+                    if(inline0.NOT() !== null && inline0.NULL_() !== null) {
+                        col['nullable'] = false;    
+                    }
+                    if(inline0.NOT() === null && inline0.NULL_() !== null) {
+                        col['nullable'] = true;
+                    }
+                }
+
+                const check = inline0.check_constraint();
+                if(check !== null) {
+                    const unary = check.condition().expression()
+                        .logical_expression().unary_logical_expression();
+                    if(unary.getText().includes('ISNOTNULL')) {
+                        const colName = unary.multiset_expression().getText().replaceAll('"','');
+                        sqlObj.columns[colName].nullable = false;   
+                    }        
+                }
+
+            }
+            
             const columnName = columnDefinition.column_name();
-            if(columnName !== null) {
+            if(columnName !== null && datatype !== null) {
                 col['name'] = columnName.getText();
                 sqlObj.columns[columnName.getText()] = col;
             }
