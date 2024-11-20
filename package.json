@@ -15,7 +15,11 @@
   "author": "ailtonbsj",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^22.9.0",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@griffithswaite/ts-plsql-parser": "^1.0.5"
   }
 }
