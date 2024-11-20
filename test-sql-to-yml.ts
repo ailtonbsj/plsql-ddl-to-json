@@ -18,9 +18,10 @@ function getJavaType(sqlType: string, len: string) {
 	else  return 'Object';
 }
 
-function getUI(sqlType: string, len: string) {
+function getUI(sqlType: string, len: string, enumList: boolean) {
 	const length = parseInt(len);
-	if (sqlType === 'VARCHAR2' && length === 1) return 'slidetoggle';
+	if(enumList) return 'select';
+	else if (sqlType === 'VARCHAR2' && length === 1) return 'slidetoggle';
 	else if (sqlType === 'CHAR') return 'slidetoggle';
 	else if (sqlType === 'VARCHAR2' && length > 1) return 'inputtext';
 	else if (sqlType === 'DATE') return 'inputdate';
@@ -39,11 +40,16 @@ function printYml(normObj: object) {
 		console.log('- property: ' + upperSnakeToCamel(col.name));
 		console.log('  column: ' + col.name);
 		console.log('  javaType: ' + getJavaType(col.nativeType, col.len));
-		console.log('  uiComponent: ' + getUI(col.nativeType, col.len));
+		console.log('  uiComponent: ' + getUI(col.nativeType, col.len, col.enumItems !== undefined));
 		console.log('  label: ' + upperSnakeToTitle(col.name));
 		console.log('  key: ' + col.key);
 		console.log('  nullable: ' + col.nullable);
 		console.log('  search: true');
+		if(col.enumItems !== undefined) {
+			console.log('  enum: ');			
+			col.enumItems.map(i => console.log(`  - '${i}'`));
+		}
+		
 		if (col.foreignTable !== undefined) {
 			console.log('  # targetClass: ' + upperSnakeToPascal(col.foreignTable.split('.')[1]));
 			console.log('  # targetProperty: ' + upperSnakeToCamel(col.foreignColumn));
@@ -60,7 +66,7 @@ async function main() {
 	const obj = await plsqlToJs('example.sql');
 	
 	console.log(`--- JSON ---\n`);
-	console.log(obj);
+	console.log(JSON.stringify(obj));
 
 	console.log(`\n--- YAML ---\n`);
 	printYml(obj.columns);
